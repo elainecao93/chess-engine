@@ -28,10 +28,9 @@ PAWN_CAPTURE_BLACK = [(1, -1), (-1, -1)]
 
 def get_legal_moves(position):
     owned_pieces = []
-    for row in position.board:
-        for square in row:
-            if square != None and square.piece_color == position.to_move:
-                owned_pieces.append(square)
+    for piece in position.pieces:
+        if piece.piece_color == position.to_move:
+            owned_pieces.append(piece)
     moves = []
     for piece in owned_pieces:
         allowed_squares = []
@@ -48,7 +47,7 @@ def get_legal_moves(position):
         if piece.piece_type == PieceType.PAWN:
             allowed_squares = get_pawn_moves(position, (piece.position_rank, piece.position_file), piece.piece_color)
         moves = ([Move(piece.position_rank, piece.position_file, square[0], square[1], piece.piece_type, piece.piece_color) for square in allowed_squares]) + moves
-    print(moves)
+    return moves
 
 
 def get_diagonal_moves(position, square, piece_color):
@@ -97,9 +96,10 @@ def get_pawn_moves(position, square, piece_color):
 def is_square_blocked(position, square, piece_color):
     if square[0] < 0 or square[0] > 7 or square[1] < 0 or square[1] > 7:
         return MoveAbility.BLOCKED
-    if position.board[square[1]][square[0]] == None:
+    pieces_on_square = [piece for piece in position.pieces if piece.position_file == square[1] and piece.position_rank == square[0]]
+    if len(pieces_on_square) == 0:
         return MoveAbility.CAN_MOVE
-    return MoveAbility.CAN_CAPTURE if (position.board[square[1]][square[0]].piece_color != piece_color) else MoveAbility.BLOCKED
+    return MoveAbility.CAN_CAPTURE if (pieces_on_square[0].piece_color != piece_color) else MoveAbility.BLOCKED
 
 
 def get_next_square(origin_square, move_direction):
@@ -122,15 +122,15 @@ def get_next_square(origin_square, move_direction):
 
 
 def test():
-    white_rook = Piece("e1", PieceColor.WHITE, PieceType.ROOK)
-    white_bishop = Piece("c3", PieceColor.WHITE, PieceType.BISHOP)
-    white_knight = Piece("d3", PieceColor.WHITE, PieceType.KNIGHT)
-    white_pawn = Piece("g2", PieceColor.WHITE, PieceType.PAWN)
-    white_second_pawn = Piece("f4", PieceColor.WHITE, PieceType.PAWN)
-    black_piece = Piece("e5", PieceColor.BLACK, PieceType.ROOK)
-    position = BoardPosition([white_rook, white_bishop, white_knight, white_pawn, white_second_pawn, black_piece], PieceColor.WHITE)
-    print(position.__str__())
-    output = get_legal_moves(position)
+    white_rook = Piece(PieceColor.WHITE, PieceType.ROOK, position="e1")
+    white_bishop = Piece(PieceColor.WHITE, PieceType.BISHOP, position="c3")
+    white_knight = Piece(PieceColor.WHITE, PieceType.KNIGHT, position="d3")
+    white_pawn = Piece(PieceColor.WHITE, PieceType.PAWN, position="g2")
+    white_second_pawn = Piece(PieceColor.WHITE, PieceType.PAWN, position="f4")
+    black_piece = Piece(PieceColor.BLACK, PieceType.ROOK, position="e5")
+    position = BoardPosition({white_rook, white_bishop, white_knight, white_pawn, white_second_pawn, black_piece}, PieceColor.WHITE)
+    print(position)
+    print(get_legal_moves(position))
 
 
 if __name__ == "__main__":
