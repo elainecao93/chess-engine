@@ -13,7 +13,7 @@ def parse_user_move(user_move):
 
 
 def main():
-    pieces = [Piece(PieceColor.WHITE, PieceType.QUEEN, position="a1"), Piece(PieceColor.WHITE, PieceType.QUEEN, position="b1"), Piece(PieceColor.WHITE, PieceType.KING, position="e1"), Piece(PieceColor.BLACK, PieceType.KING, position="e8")]
+    pieces = [Piece(PieceColor.WHITE, PieceType.QUEEN, position="a1"), Piece(PieceColor.WHITE, PieceType.KING, position="e5"), Piece(PieceColor.BLACK, PieceType.KING, position="e8")]
     board = BoardPosition(pieces, PieceColor.WHITE)
     move_count = 0
     while True:

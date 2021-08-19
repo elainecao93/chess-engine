@@ -3,10 +3,10 @@ from classes.moves import Move
 from classes.pieces import PieceType, PieceColor, Piece
 import sys
 
-SEARCH_DEPTH = 10000
+SEARCH_DEPTH = 100000
 
 def get_depth(iterator, search_list, current_depth = 0):
-    if search_list[iterator][1] == 0:
+    if iterator == 0:
         return 1
     return 1+ get_depth(search_list[iterator][1], search_list)
 
@@ -36,19 +36,27 @@ def get_best_move(position):
         legal_moves = current_position.get_legal_moves()
         new_positions = [current_position.create_new_position(move) for move in legal_moves]
     #for each position, check to see if its already in the list using hash
+        new_positions = [new_position for new_position in new_positions if new_position not in position_hash]
+    #check if king can be captured, if so exit
+        is_checkmate = False
         for new_position in new_positions:
-            if new_position not in position_hash:
-                position_hash.add(new_position)
-                search_list.append((new_position, iterator, []))
-                search_list[iterator][2].append(len(search_list)-1)
+            if all([(piece.piece_type != PieceType.KING and piece.piece_color != current_position.to_move) for piece in new_position.pieces]):
+                is_checkmate = True
+        if is_checkmate:
+            continue
+        for new_position in new_positions:
+            position_hash.add(new_position)
+            search_list.append((new_position, iterator, []))
+            search_list[iterator][2].append(len(search_list)-1)
     #append position to list
         iterator += 1
-        if iterator % 1000 == 0:
+        if iterator % 10000 == 0:
             print(current_position)
             print(legal_moves)
             print(get_depth(iterator, search_list))
             print(current_position.evaluate_position())
             print(iterator)
+            print(len(search_list))
         if iterator > SEARCH_DEPTH or iterator > len(search_list):
             break
     
@@ -62,19 +70,6 @@ def get_best_move(position):
     for ind in range(0, len(evaluations)):
         print(str(starting_legal_moves[ind]) + " " + str(evaluations[ind]))
     curr_index = 0
-    """while True:
-        print(curr_index)
-        print(search_list[curr_index])
-        print(search_list[curr_index][0])
-        print(search_list[curr_index][0].pieces)
-        if not search_list[curr_index][2]:
-            break
-        current_moves = search_list[curr_index][0].get_legal_moves()
-        print(current_moves)
-        current_evaluations = [evaluate_recursive(search_list, ind) for ind in search_list[curr_index][2]]
-        move_index = current_evaluations.index(max(current_evaluations))
-        print(current_moves[move_index])
-        curr_index = search_list[curr_index][2][move_index]"""
     print(starting_legal_moves[evaluations.index(evaluation)])
     print(evaluation)
     return (starting_legal_moves[evaluations.index(evaluation)], evaluation)
