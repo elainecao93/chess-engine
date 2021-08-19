@@ -5,8 +5,8 @@ from json import dumps
 
 ALLOWED_KNIGHT_MOVEMENT = [(1, 2), (2, 1), (-1, 2), (-2, 1), (1, -2), (2, -1), (-1, -2), (-2, -1)]
 ALLOWED_KING_MOVEMENT = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
-PAWN_CAPTURE_WHITE = [(1, 1), (-1, 1)]
-PAWN_CAPTURE_BLACK = [(1, -1), (-1, -1)]
+PAWN_CAPTURE_WHITE = [(1, 1), (1, -1)]
+PAWN_CAPTURE_BLACK = [(-1, 1), (-1, -1)]
 
 def evaluate_piece(piece_type):
     if piece_type == PieceType.PAWN:
@@ -31,7 +31,7 @@ class BoardPosition():
     def __str__(self):
         board = [[None for x in range(0, 8)] for y in range(0, 8)]
         for piece in self.pieces:
-            board[piece.position_file][piece.position_rank] = piece
+            board[piece.position_rank][piece.position_file] = piece
         output_rows = ["".join(["-" for _ in range(0, 33)])]
         for row in reversed(board):
             output_rows.append("|" + "|".join(["'" + k.get_piece_identifier() + "'" if k else "'-'" for k in row]) + "|")
@@ -51,11 +51,18 @@ class BoardPosition():
                 new_pieces.append(piece.move_piece(move))
             elif piece.position_rank != move.end_rank or piece.position_file != move.end_file:
                 new_pieces.append(piece)
-        return BoardPosition(new_pieces, PieceColor.WHITE if self.to_move == PieceColor.BLACK else PieceColor.BLACK)
+        return BoardPosition(new_pieces, (PieceColor.WHITE if self.to_move == PieceColor.BLACK else PieceColor.BLACK))
+    
+    def flip_to_move(self):
+        return BoardPosition(self.pieces, PieceColor.BLACK if self.to_move == PieceColor.WHITE else PieceColor.WHITE)
 
     def evaluate_position(self):
         base_evaluation = sum([(evaluate_piece(p.piece_type) if p.piece_color == PieceColor.WHITE else -1 * (evaluate_piece(p.piece_type))) for p in self.pieces])
-        return base_evaluation
+        white_moves = self.get_legal_moves() if self.to_move == PieceColor.WHITE else self.flip_to_move().get_legal_moves()
+        black_moves = self.get_legal_moves() if self.to_move == PieceColor.BLACK else self.flip_to_move().get_legal_moves()
+        white_control = sum([1 + (move.end_rank-3)/2.5 if move.end_rank > 3 else 0 for move in white_moves])
+        black_control = sum([1 + (4-move.end_rank)/2.5 if move.end_rank < 4 else 0 for move in black_moves])
+        return base_evaluation + ((white_control - black_control) * 0.05)
 
     def get_legal_moves(self):
         owned_pieces = []
@@ -111,11 +118,11 @@ class BoardPosition():
     def get_pawn_moves(self, square, piece_color):
         if piece_color == PieceColor.WHITE:
             captures = [(square[0]+i[0], square[1]+i[1]) for i in PAWN_CAPTURE_WHITE if (k := self.is_square_blocked((square[0]+i[0], square[1]+i[1]), piece_color) == MoveAbility.CAN_CAPTURE)]
-            movement = [(square[0]+i[0], square[1]+i[1]) for i in ([(0, 1), (0, 2)] if square[1] == 1 else [(0, 1)]) if (k := self.is_square_blocked((square[0]+i[0], square[1]+i[1]), piece_color) == MoveAbility.CAN_MOVE)]
+            movement = [(square[0]+i[0], square[1]+i[1]) for i in ([(1, 0), (2, 0)] if square[0] == 1 else [(1, 0)]) if (k := self.is_square_blocked((square[0]+i[0], square[1]+i[1]), piece_color) == MoveAbility.CAN_MOVE)]
             return captures + movement
         else:
             captures = [(square[0]+i[0], square[1]+i[1]) for i in PAWN_CAPTURE_BLACK if (k := self.is_square_blocked((square[0]+i[0], square[1]+i[1]), piece_color) == MoveAbility.CAN_CAPTURE)]
-            movement = [(square[0]+i[0], square[1]+i[1]) for i in ([(0, -1), (0, -2)] if square[1] == 1 else [(0, -1)]) if (k := self.is_square_blocked((square[0]+i[0], square[1]+i[1]), piece_color) == MoveAbility.CAN_MOVE)]
+            movement = [(square[0]+i[0], square[1]+i[1]) for i in ([(-1, 0), (-2, 0)] if square[0] == 6 else [(-1, 0)]) if (k := self.is_square_blocked((square[0]+i[0], square[1]+i[1]), piece_color) == MoveAbility.CAN_MOVE)]
             return captures + movement
 
     def is_square_blocked(self, square, piece_color):
@@ -169,6 +176,9 @@ def test():
     position = BoardPosition({white_rook, white_bishop, white_knight, white_pawn, white_second_pawn, black_piece}, PieceColor.WHITE)
     print(position)
     print(position.get_legal_moves())
+    flipped_position = position.flip_to_move()
+    print(flipped_position)
+    print(flipped_position.get_legal_moves())
 
 
 if __name__ == "__main__":

@@ -13,4 +13,4 @@ class Move():
 
     def __repr__(self):
         piece_symbol = "N" if self.piece_type == PieceType.KNIGHT else self.piece_type.name[0]
-        return piece_symbol + chr(self.end_rank + ord('a')) + str(self.end_file + 1)
+        return piece_symbol + chr(self.end_file + ord('a')) + str(self.end_rank + 1)

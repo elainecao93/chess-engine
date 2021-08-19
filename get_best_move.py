@@ -5,7 +5,6 @@ import sys
 
 SEARCH_DEPTH = 10000
 
-
 def get_depth(iterator, search_list, current_depth = 0):
     if search_list[iterator][1] == 0:
         return 1
@@ -25,7 +24,7 @@ def evaluate_recursive(search_list, position_index):
 def get_best_move(position):
     #each element has position, link to previous position, and links to all next positions
     search_list = [(position, None, [])]
-    legal_moves = []
+    starting_legal_moves = position.get_legal_moves()
     iterator = 0
     position_hash = {position}
 
@@ -33,8 +32,8 @@ def get_best_move(position):
     #for each position in list:
     #get list of all legal moves
         current_position = search_list[iterator][0]
-        legal_moves = current_position.get_legal_moves()
     #for each legal move, generate new position
+        legal_moves = current_position.get_legal_moves()
         new_positions = [current_position.create_new_position(move) for move in legal_moves]
     #for each position, check to see if its already in the list using hash
         for new_position in new_positions:
@@ -44,10 +43,12 @@ def get_best_move(position):
                 search_list[iterator][2].append(len(search_list)-1)
     #append position to list
         iterator += 1
-        if iterator%1000 == 0:
-            print(get_depth(iterator, search_list))
-            print(iterator)
+        if iterator % 1000 == 0:
             print(current_position)
+            print(legal_moves)
+            print(get_depth(iterator, search_list))
+            print(current_position.evaluate_position())
+            print(iterator)
         if iterator > SEARCH_DEPTH or iterator > len(search_list):
             break
     
@@ -57,13 +58,33 @@ def get_best_move(position):
     #only evaluate if not evaluated based on positions
     #pass evaluation to previous positions and update if needed
     evaluations = [evaluate_recursive(search_list, ind) for ind in search_list[0][2]]
-    return legal_moves[evaluations.index(max(evaluations))]
+    evaluation = max(evaluations)
+    for ind in range(0, len(evaluations)):
+        print(str(starting_legal_moves[ind]) + " " + str(evaluations[ind]))
+    curr_index = 0
+    """while True:
+        print(curr_index)
+        print(search_list[curr_index])
+        print(search_list[curr_index][0])
+        print(search_list[curr_index][0].pieces)
+        if not search_list[curr_index][2]:
+            break
+        current_moves = search_list[curr_index][0].get_legal_moves()
+        print(current_moves)
+        current_evaluations = [evaluate_recursive(search_list, ind) for ind in search_list[curr_index][2]]
+        move_index = current_evaluations.index(max(current_evaluations))
+        print(current_moves[move_index])
+        curr_index = search_list[curr_index][2][move_index]"""
+    print(starting_legal_moves[evaluations.index(evaluation)])
+    print(evaluation)
+    return (starting_legal_moves[evaluations.index(evaluation)], evaluation)
 
 
 def test():
-    board = set_up_starting_position()
-    print(board)
-    print(get_best_move(board))
+    pieces = [Piece(PieceColor.WHITE, PieceType.ROOK, position="a1"), Piece(PieceColor.WHITE, PieceType.KING, position="e1"), Piece(PieceColor.BLACK, PieceType.KING, position="e8")]
+    board = BoardPosition(pieces, PieceColor.WHITE)
+    # board = set_up_starting_position()
+    best_move = get_best_move(board)
 
 
 if __name__ == "__main__":

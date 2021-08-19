@@ -22,8 +22,8 @@ class Piece:
             self.position_rank = position_rank
             self.position_file = position_file
         else:
-            self.position_rank = ord(position[0])-ord('a')
-            self.position_file = int(position[1])-1
+            self.position_file = ord(position[0])-ord('a')
+            self.position_rank = int(position[1])-1
 
     def get_piece_identifier(self):
         identifier = "N" if self.piece_type == PieceType.KNIGHT else self.piece_type.name[0]
