@@ -1,6 +1,7 @@
 from classes.pieces import Piece, PieceColor, PieceType
 
-class Move():    
+
+class Move:
     def __init__(self, start_rank, start_file, end_rank, end_file, piece_type, piece_color, is_capture=False, is_special=False):
         self.start_rank = start_rank
         self.start_file = start_file

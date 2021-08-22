@@ -57,12 +57,12 @@ class BoardPosition():
         return BoardPosition(self.pieces, PieceColor.BLACK if self.to_move == PieceColor.WHITE else PieceColor.WHITE)
 
     def evaluate_position(self):
-        base_evaluation = sum([(evaluate_piece(p.piece_type) if p.piece_color == PieceColor.WHITE else -1 * (evaluate_piece(p.piece_type))) for p in self.pieces])
+        base_evaluation = sum([(evaluate_piece(p.piece_type) if p.piece_color == PieceColor.WHITE else -1 * (evaluate_piece(p.piece_type))) for p in self.pieces]) * 100
         white_moves = self.get_legal_moves() if self.to_move == PieceColor.WHITE else self.flip_to_move().get_legal_moves()
         black_moves = self.get_legal_moves() if self.to_move == PieceColor.BLACK else self.flip_to_move().get_legal_moves()
-        white_control = sum([1 + (move.end_rank-3)/2.5 if move.end_rank > 3 else 0 for move in white_moves])
-        black_control = sum([1 + (4-move.end_rank)/2.5 if move.end_rank < 4 else 0 for move in black_moves])
-        return base_evaluation + ((white_control - black_control) * 0.05)
+        white_control = sum([5 + 2*abs(move.end_rank-7) if move.end_rank > 3 else 0 for move in white_moves])
+        black_control = sum([5 + 2*abs(1-move.end_rank) if move.end_rank < 4 else 0 for move in black_moves])
+        return base_evaluation + (white_control - black_control)
 
     def get_legal_moves(self):
         owned_pieces = []
@@ -152,6 +152,7 @@ def get_next_square(origin_square, move_direction):
     if move_direction == MoveDirection.DOWN_RIGHT:
         return (origin_square[0]+1, origin_square[1]-1)
 
+
 def set_up_starting_position():
     white_pawns = [Piece(PieceColor.WHITE, PieceType.PAWN, position = chr(ord("a")+i)+"2") for i in range(0, 8)]
     black_pawns = [Piece(PieceColor.BLACK, PieceType.PAWN, position = chr(ord("a")+i)+"7") for i in range(0, 8)]
@@ -165,6 +166,7 @@ def set_up_starting_position():
     black_majors = [Piece(PieceColor.BLACK, i[1], position = i[0]) for i in [("d8", PieceType.QUEEN), ("e8", PieceType.KING)]]
     pieces = (white_pawns + black_pawns + white_rooks + black_rooks + white_knights + black_knights + white_bishops + black_bishops + white_majors + black_majors)
     return BoardPosition(pieces, PieceColor.WHITE, True, True, True, True)
+
 
 def test():
     white_rook = Piece(PieceColor.WHITE, PieceType.ROOK, position="e1")
